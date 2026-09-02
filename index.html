@@ -100,8 +100,9 @@
     gap:28px;
   }
   .seal{
-    flex:none;
-    width:92px;height:92px;
+    flex:0 0 auto;
+    width:clamp(60px, 8vw, 92px);
+    aspect-ratio:1;
     border-radius:50%;
     padding:3px;
     background:radial-gradient(circle at 35% 30%, rgba(227,198,105,.35), rgba(227,198,105,.08) 70%);
@@ -119,6 +120,10 @@
     color:var(--gold-300);
     margin:0 0 6px;
     letter-spacing:.04em;
+    display:block;
+  }
+  .eyebrow-line{
+    display:inline;
   }
   header h1{
     margin:0;
@@ -337,13 +342,22 @@
     background:#3a3450;
     box-shadow:0 18px 40px -22px rgba(28,16,51,.45);
   }
-  .viewer-frame iframe{
+  .viewer-frame iframe,
+  .viewer-frame object,
+  .viewer-frame embed{
     width:100%;
     height:78vh;
     min-height:520px;
     border:none;
     display:block;
     background:#575070;
+  }
+  .viewer-mobile {
+    background:#fff;
+    border:1px solid var(--line);
+    box-shadow:none;
+    padding:24px 18px;
+    text-align:center;
   }
   .viewer-fallback{
     padding:14px 18px;
@@ -405,7 +419,31 @@
   }
   @media (max-width:520px){
     ul.office-list{grid-template-columns:1fr;}
-    .masthead-inner{flex-direction:column;align-items:flex-start;text-align:left;}
+    .masthead-inner{
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+    }
+    .seal{
+      width:clamp(72px, 24vw, 96px);
+      min-width:72px;
+      margin:0 auto;
+    }
+    .eyebrow{
+      font-size:12px;
+      line-height:1.5;
+      white-space:normal;
+      display:block;
+    }
+    .eyebrow-line{
+      display:block;
+    }
+    .viewer-frame iframe,
+    .viewer-frame object,
+    .viewer-frame embed{
+      min-height:420px;
+      height:68vh;
+    }
   }
 </style>
 </head>
@@ -415,7 +453,7 @@
   <div class="masthead-inner">
     <div class="seal"><img src="lgu_logo.jpg" alt="Seal of the Municipality of Mabini, Bohol"></div>
     <div>
-      <p class="eyebrow">Republic of the Philippines · Province of Bohol</p>
+      <p class="eyebrow"><span class="eyebrow-line">Republic of the Philippines</span> <span class="eyebrow-line">Province of Bohol</span></p>
       <h1>Municipality of Mabini</h1>
       <p class="charter-label">Citizen's Charter 2026 — Office Directory</p>
       <p class="tagline">A public guide to frontline services across the Municipal Government of Mabini — what each office offers, what to bring, what it costs, and how long it takes.</p>
@@ -521,6 +559,26 @@ function renderPanel(office){
     </ul>
   ` : "";
 
+  const isMobile = window.matchMedia("(max-width: 820px)").matches;
+
+  const viewerHtml = isMobile ? `
+    <div class="viewer-frame viewer-mobile">
+      <div class="viewer-fallback">
+        This PDF is best viewed in your mobile browser.<br>
+        <a href="${office.file}" target="_blank" rel="noopener">Open the PDF</a>
+      </div>
+    </div>
+  ` : `
+    <div class="viewer-frame">
+      <object data="${office.file}" type="application/pdf" aria-label="${office.name} Citizen's Charter">
+        <embed src="${office.file}" type="application/pdf" title="${office.name} Citizen's Charter" />
+      </object>
+      <div class="viewer-fallback">
+        Document not displaying? <a href="${office.file}" target="_blank" rel="noopener">Open it directly</a>.
+      </div>
+    </div>
+  `;
+
   panelEl.innerHTML = `
     <p class="office-sub">Municipal Office · Citizen's Charter Available</p>
     <div class="panel-head"><h2>${office.name}</h2></div>
@@ -530,12 +588,7 @@ function renderPanel(office){
       <a class="btn btn-primary" href="${office.file}" target="_blank" rel="noopener">Open in new tab</a>
       <a class="btn btn-ghost" href="${office.file}" download>Download PDF</a>
     </div>
-    <div class="viewer-frame">
-      <iframe src="${office.file}" title="${office.name} Citizen's Charter"></iframe>
-      <div class="viewer-fallback">
-        Document not displaying? <a href="${office.file}" target="_blank" rel="noopener">Open it directly</a>.
-      </div>
-    </div>
+    ${viewerHtml}
   `;
 }
 
